@@ -16,11 +16,13 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import type { SavedLocation } from "@/lib/types"
+import { useRouter } from "next/navigation"
 
 import { shouldAllowPremium } from "@/lib/dev-mode"
 
 function DashboardContent() {
   const { user } = useAuth()
+  const router = useRouter()
   const [selectedLocation, setSelectedLocation] = useState<SavedLocation | null>(null)
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([])
 
@@ -51,6 +53,13 @@ function DashboardContent() {
 
   const handleLocationSelect = (location: SavedLocation) => {
     setSelectedLocation(location)
+    sessionStorage.setItem("selectedLocation", JSON.stringify(location))
+  }
+
+  const handleNavigateToVisualizations = () => {
+    if (selectedLocation) {
+      router.push(`/visualizations?location=${encodeURIComponent(selectedLocation.name)}`)
+    }
   }
 
   const isPremium = shouldAllowPremium(user?.isPremium || false)

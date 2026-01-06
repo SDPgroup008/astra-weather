@@ -11,18 +11,25 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { shouldAllowPremium } from "@/lib/dev-mode"
+import { useSearchParams } from "next/navigation"
 
 function VisualizationsContent() {
   const { user } = useAuth()
-  const [location, setLocation] = useState("")
+  const searchParams = useSearchParams()
+  const [location, setLocation] = useState(
+    searchParams.get("location") || user?.preferences?.location || "New York, USA",
+  )
   const [mode, setMode] = useState<"atm" | "temp" | "humid" | "wind" | "press">("temp")
   const { weatherData, loading: weatherLoading } = useWeather(user?.id, location || user?.preferences?.location || "")
 
   useEffect(() => {
-    if (user && !location) {
+    const paramLocation = searchParams.get("location")
+    if (paramLocation) {
+      setLocation(paramLocation)
+    } else if (user && !location) {
       setLocation(user.preferences?.location || "New York, USA")
     }
-  }, [user, location])
+  }, [user, searchParams])
 
   const isPremium = shouldAllowPremium(user?.isPremium || false)
 

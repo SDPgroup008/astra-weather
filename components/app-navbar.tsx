@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
-import { Cloud, LayoutDashboard, Settings, Zap, LogOut, Sparkles } from "lucide-react"
+import { Cloud, LayoutDashboard, Settings, Zap, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
