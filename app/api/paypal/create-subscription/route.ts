@@ -15,9 +15,11 @@ if (!getApps().length) {
 const db = getFirestore()
 
 async function getPayPalAccessToken() {
-  const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64")
+  const auth = Buffer.from(
+    `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+  ).toString("base64")
 
-  const response = await fetch("https://api.paypal.com/v1/oauth2/token", {
+  const response = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
     method: "POST",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -27,6 +29,9 @@ async function getPayPalAccessToken() {
   })
 
   const data = await response.json()
+  if (!response.ok) {
+    throw new Error(data.error_description || "Failed to get PayPal access token")
+  }
   return data.access_token
 }
 
@@ -34,10 +39,17 @@ export async function POST(request: NextRequest) {
   try {
     const { planId, userId } = await request.json()
 
+    if (!planId || !userId) {
+      return NextResponse.json(
+        { error: "Missing planId or userId" },
+        { status: 400 }
+      )
+    }
+
     const accessToken = await getPayPalAccessToken()
 
-    // Create subscription using PayPal API
-    const response = await fetch("https://api.paypal.com/v1/billing/subscriptions", {
+    // Create subscription using PayPal LIVE API
+    const response = await fetch("https://api-m.paypal.com/v1/billing/subscriptions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -46,22 +58,12 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         plan_id: planId,
-        subscriber: {
-          name: {
-            given_name: "User",
-          },
-          email_address: `user-${userId}@astraweather.app`,
-        },
         application_context: {
-          brand_name: "AstraWeather AI",
+          brand_name: "AstraWeatherz",
           locale: "en-US",
           user_action: "SUBSCRIBE_NOW",
-          payment_method: {
-            payer_selected: "PAYPAL",
-            payee_preferred: "IMMEDIATE_PAYMENT_REQUIRED",
-          },
-          return_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/success`,
-          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/pricing`,
+          return_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/success`,
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/pricing`,
         },
       }),
     })

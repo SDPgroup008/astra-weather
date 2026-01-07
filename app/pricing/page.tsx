@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Cloud, Check, X, Zap, Sparkles } from "lucide-react"
+import { Check, Cloud, Sparkles, X, Zap } from "lucide-react"
 import Link from "next/link"
 import { initializePayPalScript, createPayPalSubscription } from "@/lib/paypal-client"
 
@@ -32,7 +32,7 @@ const PLANS = [
   },
   {
     name: "Premium",
-    price: 2.99,
+    price: 1.98,
     period: "month",
     description: "Everything you need for weather mastery",
     badge: "Most Popular",
@@ -68,7 +68,7 @@ export default function PricingPage() {
 
   const handleUpgrade = async (paypalPlanId: string | null) => {
     if (!paypalPlanId || !user) {
-      alert("Unable to process subscription. Please try again.")
+      console.error("Unable to process subscription. Missing plan ID or user.")
       return
     }
 
@@ -79,12 +79,12 @@ export default function PricingPage() {
       if (subscription.links) {
         const approveLink = subscription.links.find((link: any) => link.rel === "approve")
         if (approveLink) {
+          // Redirect user to PayPal approval page
           window.location.href = approveLink.href
         }
       }
     } catch (error) {
       console.error("Upgrade error:", error)
-      alert("Failed to initiate subscription. Please try again.")
     } finally {
       setIsLoading(false)
     }
