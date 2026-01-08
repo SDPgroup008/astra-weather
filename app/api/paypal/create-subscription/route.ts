@@ -30,6 +30,7 @@ async function getPayPalAccessToken() {
 
   const data = await response.json()
   if (!response.ok) {
+    console.error("PayPal token error:", data)
     throw new Error(data.error_description || "Failed to get PayPal access token")
   }
   return data.access_token
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
     const subscription = await response.json()
 
     if (!response.ok) {
+      console.error("PayPal subscription creation error:", subscription)
       throw new Error(subscription.message || "Failed to create subscription")
     }
 
