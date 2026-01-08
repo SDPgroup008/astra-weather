@@ -29,6 +29,7 @@ async function getPayPalAccessToken() {
   })
 
   const data = await response.json()
+  console.log("PayPal token response:", data)
   if (!response.ok) {
     console.error("PayPal token error:", data)
     throw new Error(data.error_description || "Failed to get PayPal access token")
@@ -39,6 +40,7 @@ async function getPayPalAccessToken() {
 export async function POST(request: NextRequest) {
   try {
     const { planId, userId } = await request.json()
+    console.log("Incoming subscription request:", { planId, userId })
 
     if (!planId || !userId) {
       return NextResponse.json(
@@ -49,7 +51,21 @@ export async function POST(request: NextRequest) {
 
     const accessToken = await getPayPalAccessToken()
 
-    // Create subscription using PayPal LIVE API
+    // Build the payload inline
+    const subscriptionPayload = {
+      plan_id: planId,
+      application_context: {
+        brand_name: "AstraWeatherz",
+        locale: "en-US",
+        user_action: "SUBSCRIBE_NOW",
+        return_url: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+      },
+    }
+
+    // Log it before sending
+    console.log("Sending subscription payload:", subscriptionPayload)
+
     const response = await fetch("https://api-m.paypal.com/v1/billing/subscriptions", {
       method: "POST",
       headers: {
@@ -57,19 +73,11 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
         "PayPal-Request-Id": `${userId}-${Date.now()}`,
       },
-      body: JSON.stringify({
-        plan_id: planId,
-        application_context: {
-          brand_name: "AstraWeatherz",
-          locale: "en-US",
-          user_action: "SUBSCRIBE_NOW",
-          return_url: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
-          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
-        },
-      }),
+      body: JSON.stringify(subscriptionPayload),
     })
 
     const subscription = await response.json()
+    console.log("PayPal subscription response:", subscription)
 
     if (!response.ok) {
       console.error("PayPal subscription creation error:", subscription)
