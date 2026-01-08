@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
           brand_name: "AstraWeatherz",
           locale: "en-US",
           user_action: "SUBSCRIBE_NOW",
-          return_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/success`,
-          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001"}/pricing`,
+          return_url: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
         },
       }),
     })
