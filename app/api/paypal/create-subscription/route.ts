@@ -19,7 +19,12 @@ async function getPayPalAccessToken() {
     `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
   ).toString("base64")
 
-  const response = await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
+  // Use LIVE endpoint in production, SANDBOX in development
+  const baseUrl = process.env.NODE_ENV === "production" 
+    ? "https://api-m.paypal.com" 
+    : "https://api-m.sandbox.paypal.com"
+
+  const response = await fetch(`${baseUrl}/v1/oauth2/token`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -67,7 +72,12 @@ export async function POST(request: NextRequest) {
     // Log it before sending
     console.log("Sending subscription payload:", subscriptionPayload)
 
-    const response = await fetch("https://api-m.sandbox.paypal.com/v1/billing/subscriptions", {
+    // Use LIVE endpoint in production, SANDBOX in development
+    const baseUrl = process.env.NODE_ENV === "production" 
+      ? "https://api-m.paypal.com" 
+      : "https://api-m.sandbox.paypal.com"
+
+    const response = await fetch(`${baseUrl}/v1/billing/subscriptions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,

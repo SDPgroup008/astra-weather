@@ -30,7 +30,12 @@ async function verifyPayPalWebhook(
 
   const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64")
 
-  const response = await fetch("https://api-m.sandbox.paypal.com/v1/notifications/verify-webhook-signature", {
+  // Use LIVE endpoint in production, SANDBOX in development
+  const baseUrl = process.env.NODE_ENV === "production" 
+    ? "https://api-m.paypal.com" 
+    : "https://api-m.sandbox.paypal.com"
+
+  const response = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
     method: "POST",
     headers: {
       Authorization: `Basic ${auth}`,

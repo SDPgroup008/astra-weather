@@ -11,25 +11,42 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { shouldAllowPremium } from "@/lib/dev-mode"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
+import type { SavedLocation } from "@/lib/types"
+import { ChevronDown } from "lucide-react"
 
 function VisualizationsContent() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [location, setLocation] = useState(
     searchParams.get("location") || user?.preferences?.location || "New York, USA",
   )
+  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([])
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [mode, setMode] = useState<"atm" | "temp" | "humid" | "wind" | "press">("temp")
   const { weatherData, loading: weatherLoading } = useWeather(user?.id, location || user?.preferences?.location || "")
 
   useEffect(() => {
     const paramLocation = searchParams.get("location")
     if (paramLocation) {
-      setLocation(paramLocation)
+      setLocation(decodeURIComponent(paramLocation))
     } else if (user && !location) {
       setLocation(user.preferences?.location || "New York, USA")
     }
   }, [user, searchParams])
+
+  useEffect(() => {
+    if (user?.savedLocations) {
+      setSavedLocations(user.savedLocations)
+    }
+  }, [user])
+
+  const handleLocationChange = (newLocation: string) => {
+    setLocation(newLocation)
+    router.push(`/visualizations?location=${encodeURIComponent(newLocation)}`)
+    setShowLocationDropdown(false)
+  }
 
   const isPremium = shouldAllowPremium(user?.isPremium || false)
 
@@ -56,8 +73,57 @@ function VisualizationsContent() {
 
       {/* Header */}
       <div className="sticky top-0 z-40 bg-black/50 backdrop-blur-xl border-b border-border/40 px-8 py-4">
-        <h2 className="text-3xl font-bold">3D Weather Visualizations</h2>
-        <p className="text-muted-foreground">Advanced weather data visualization for {location || "your location"}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold">3D Weather Visualizations</h2>
+            <p className="text-muted-foreground">Advanced weather data visualization for {location || "your location"}</p>
+          </div>
+          
+          {/* Location Selector */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg transition-colors"
+            >
+              <span className="text-sm font-medium">{location}</span>
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            
+            {showLocationDropdown && (
+              <div className="absolute right-0 top-full mt-2 w-64 bg-black/80 backdrop-blur-xl border border-white/20 rounded-lg shadow-lg z-50">
+                <div className="p-2 max-h-80 overflow-y-auto">
+                  {/* All saved locations */}
+                  {savedLocations.map((loc) => (
+                    <button
+                      key={loc.id}
+                      onClick={() => handleLocationChange(loc.name)}
+                      className={`w-full text-left px-3 py-2 rounded hover:bg-white/10 transition-colors text-sm ${
+                        location === loc.name ? "bg-primary/20 text-primary font-semibold" : ""
+                      }`}
+                    >
+                      {loc.name}
+                    </button>
+                  ))}
+                  
+                  {/* Default location if not in saved list */}
+                  {savedLocations.length > 0 && !savedLocations.find(l => l.name === user?.preferences?.location) && (
+                    <>
+                      <div className="border-t border-white/10 my-2" />
+                      <button
+                        onClick={() => handleLocationChange(user?.preferences?.location || "New York, USA")}
+                        className={`w-full text-left px-3 py-2 rounded hover:bg-white/10 transition-colors text-sm ${
+                          location === user?.preferences?.location ? "bg-primary/20 text-primary font-semibold" : ""
+                        }`}
+                      >
+                        {user?.preferences?.location || "New York, USA"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Content */}

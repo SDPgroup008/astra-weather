@@ -117,6 +117,17 @@ function DashboardContent() {
               <>
                 <WeatherHeader current={weatherData.current} location={weatherData.location} />
 
+                {isPremium && (
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleNavigateToVisualizations}
+                      className="bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold px-6"
+                    >
+                      View 3D Visualization
+                    </Button>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2">
                     <HourlyWeatherForecast forecast={weatherData.forecast} />
