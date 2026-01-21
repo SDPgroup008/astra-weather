@@ -19,7 +19,7 @@ async function getPayPalAccessToken() {
     `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
   ).toString("base64")
 
-  const response = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
+  const response = await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token", {
     method: "POST",
     headers: {
       Authorization: `Basic ${auth}`,
@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
     // Build the payload inline
     const subscriptionPayload = {
       plan_id: planId,
+      custom_id: userId,
       application_context: {
         brand_name: "AstraWeatherz",
         locale: "en-US",
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Log it before sending
     console.log("Sending subscription payload:", subscriptionPayload)
 
-    const response = await fetch("https://api-m.paypal.com/v1/billing/subscriptions", {
+    const response = await fetch("https://api-m.sandbox.paypal.com/v1/billing/subscriptions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
